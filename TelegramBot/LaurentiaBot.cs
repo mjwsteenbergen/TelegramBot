@@ -19,6 +19,7 @@ namespace TelegramBot
             "TelegramBot" + Path.DirectorySeparatorChar;
 
         Dictionary<string, Command> actionLib;
+        private Dictionary<int, Command> currentConv;
 
         public static void Main(string[] args)
         {
@@ -41,11 +42,12 @@ namespace TelegramBot
             tgs.MessageRecieved += MessageRecieved;
             tgs.LookForMessages();
 
+            currentConv = new Dictionary<int, Command>();
             actionLib = new Dictionary<string, Command>();
+           
             Add(new TodoCommand(ts));
             Add(new PingCommand(tgs));
             Add(new QuoteCommand(tgs));
-
         }
 
         private void Add(Command com)
@@ -53,15 +55,20 @@ namespace TelegramBot
             actionLib.Add(com.CommandName, com);
         }
 
-        private void MessageRecieved(Message m, EventArgs e)
+        private async void MessageRecieved(Message m, EventArgs e)
         {
             Command c;
+            if (currentConv.TryGetValue(m.from.id, out c) && c != null)
+            {
+                currentConv.Add(m.contact.user_id, await c.Run(m));
+                return;
+            }
 
             Match match = Regex.Match(m.text, @"^/\w+");
 
             if (match.Success && actionLib.TryGetValue(match.Groups[0].Value, out c))
             {
-                c.Run(m);
+                currentConv[m.from.id] = await c.Run(m);
             }
         }
     }

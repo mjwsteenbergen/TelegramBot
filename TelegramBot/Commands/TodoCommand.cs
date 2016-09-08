@@ -1,4 +1,5 @@
-﻿using ApiLibs.Telegram;
+﻿using System.Threading.Tasks;
+using ApiLibs.Telegram;
 using ApiLibs.Todoist;
 
 namespace TelegramBot.Commands
@@ -11,7 +12,7 @@ namespace TelegramBot.Commands
             this.ts = ts;
         }
 
-        public override async void Run(Message m)
+        public override async Task<Command> Run(Message m)
         {
             if (m.reply_to_message != null)
             {
@@ -21,11 +22,9 @@ namespace TelegramBot.Commands
             {
                 await ts.AddTodo(m.text.Replace("/todo", ""));
             }
+            return null;
         }
 
-        public override string CommandName
-        {
-            get { return @"/todo"; }
-        }
+        public override string CommandName => @"/todo";
     }
 }

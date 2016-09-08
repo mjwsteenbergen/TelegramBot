@@ -17,17 +17,15 @@ namespace TelegramBot.Commands
             _tg = tg;
         }
 
-        public override void Run(Message m)
+        public override async Task<Command> Run(Message m)
         {
             if (m.reply_to_message != null && m.reply_to_message != null)
             {
-                _tg.SendMessage(m.chat.id, "\"" + m.reply_to_message.text + "\" - " + m.reply_to_message.@from.first_name + " " + DateTime.Now.Year);
-            }   
+                await _tg.SendMessage(m.chat.id, "\"" + m.reply_to_message.text + "\" - " + m.reply_to_message.@from.first_name + " " + DateTime.Now.Year);
+            }
+            return null;
         }
 
-        public override string CommandName
-        {
-            get { return @"/quote"; }
-        }
+        public override string CommandName => @"/quote";
     }
 }

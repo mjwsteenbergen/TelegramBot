@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using ApiLibs.Telegram;
 
 namespace TelegramBot.Commands
@@ -15,10 +16,11 @@ namespace TelegramBot.Commands
             smartAssAnswers = new List<string> { "pong", "pong", "pang", "NO. JUST NO!", "STOP IT", "tableflip"};
         }
 
-        public override void Run(Message m)
+        public override async Task<Command> Run(Message m)
         {
             Random r = new Random();
-            tgs.SendMessage(m.chat.id, smartAssAnswers[(int)((double)(smartAssAnswers.Count-1) * r.NextDouble())]);
+            await tgs.SendMessage(m.chat.id, smartAssAnswers[(int)((double)(smartAssAnswers.Count-1) * r.NextDouble())]);
+            return null;
         }
 
         public override string CommandName
