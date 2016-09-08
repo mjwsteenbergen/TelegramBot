@@ -48,6 +48,7 @@ namespace TelegramBot
             Add(new TodoCommand(ts));
             Add(new PingCommand(tgs));
             Add(new QuoteCommand(tgs));
+            Add(new OvCommand(tgs));
         }
 
         private void Add(Command com)
