@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using ApiLibs.General;
 using ApiLibs.Telegram;
 using ApiLibs.Todoist;
 using TelegramBot.Commands;
@@ -12,11 +14,32 @@ namespace TelegramBot
 {
     public class LaurentiaBot
     {
+        private static readonly string ApplicationDataPath =
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar +
+            "TelegramBot" + Path.DirectorySeparatorChar;
+
         Dictionary<string, Command> actionLib;
+
+        public static void Main(string[] args)
+        {
+            Passwords passwords = Passwords.ReadPasswords(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar +
+            "Laurentia" + Path.DirectorySeparatorChar);
+
+            TelegramService tgs = new TelegramService(passwords.Telegram_token, ApplicationDataPath);
+            TodoistService todoist = new TodoistService(passwords.TodoistKey, passwords.TodoistUserAgent);
+
+            LaurentiaBot bot = new LaurentiaBot(tgs, todoist);
+            Task.Run(async () =>
+            {
+                await tgs.SendMessage("newnottakenname", "TelegramBot is online");
+            }).Wait();
+            Console.ReadLine();
+        }
 
         public LaurentiaBot(TelegramService tgs, TodoistService ts)
         {
             tgs.MessageRecieved += MessageRecieved;
+            tgs.LookForMessages();
 
             actionLib = new Dictionary<string, Command>();
             Add(new TodoCommand(ts));
