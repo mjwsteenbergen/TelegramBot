@@ -32,6 +32,7 @@ namespace TelegramBot
             LaurentiaBot bot = new LaurentiaBot(tgs, todoist);
             Task.Run(async () =>
             {
+                await tgs.GetMessages();
                 await tgs.SendMessage("newnottakenname", "TelegramBot is online");
             }).Wait();
             Console.ReadLine();
