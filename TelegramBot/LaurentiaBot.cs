@@ -29,10 +29,11 @@ namespace TelegramBot
             TelegramService tgs = new TelegramService(passwords.Telegram_token, ApplicationDataPath);
             TodoistService todoist = new TodoistService(passwords.TodoistKey, passwords.TodoistUserAgent);
 
+
+
             LaurentiaBot bot = new LaurentiaBot(tgs, todoist);
             Task.Run(async () =>
             {
-                await tgs.GetMessages();
                 await tgs.SendMessage("newnottakenname", "TelegramBot is online");
             }).Wait();
             Console.ReadLine();
@@ -41,8 +42,6 @@ namespace TelegramBot
         public LaurentiaBot(TelegramService tgs, TodoistService ts)
         {
             tgs.MessageRecieved += MessageRecieved;
-            tgs.LookForMessages();
-
             currentConv = new Dictionary<int, Command>();
             actionLib = new Dictionary<string, Command>();
            
