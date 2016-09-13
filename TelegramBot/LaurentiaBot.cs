@@ -4,7 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Threading;
+﻿using System.Threading.Tasks;
 using ApiLibs.General;
 using ApiLibs.Telegram;
 using ApiLibs.Todoist;
@@ -34,7 +35,7 @@ namespace TelegramBot
                 await tgs.SendMessage(13173126, "TelegramBot is online");
             }).Wait();
             LaurentiaBot bot = new LaurentiaBot(tgs, todoist);
-
+            Thread.Sleep(int.MaxValue);
             Console.ReadLine();
 
         }
