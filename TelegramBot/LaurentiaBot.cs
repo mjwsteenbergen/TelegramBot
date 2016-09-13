@@ -29,14 +29,14 @@ namespace TelegramBot
             TelegramService tgs = new TelegramService(passwords.Telegram_token, ApplicationDataPath);
             TodoistService todoist = new TodoistService(passwords.TodoistKey, passwords.TodoistUserAgent);
 
-
-
-            LaurentiaBot bot = new LaurentiaBot(tgs, todoist);
             Task.Run(async () =>
             {
                 await tgs.SendMessage(13173126, "TelegramBot is online");
             }).Wait();
+            LaurentiaBot bot = new LaurentiaBot(tgs, todoist);
+
             Console.ReadLine();
+
         }
 
         public LaurentiaBot(TelegramService tgs, TodoistService ts)
