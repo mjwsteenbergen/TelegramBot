@@ -42,6 +42,7 @@ namespace TelegramBot
         public LaurentiaBot(TelegramService tgs, TodoistService ts)
         {
             tgs.MessageRecieved += MessageRecieved;
+            tgs.LookForMessages();
             currentConv = new Dictionary<int, Command>();
             actionLib = new Dictionary<string, Command>();
            
