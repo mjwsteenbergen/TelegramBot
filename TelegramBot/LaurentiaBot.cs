@@ -32,8 +32,16 @@ namespace TelegramBot
             LaurentiaBot bot = new LaurentiaBot(tgs, todoist);
             Task.Run(async () =>
             {
-                await tgs.GetMessages();
-                await tgs.SendMessage("newnottakenname", "TelegramBot is online");
+                try
+                {
+//                    await tgs.GetMessages();
+                    await tgs.SendMessage("newnottakenname", "TelegramBot is online");
+                }
+                catch (Exception e)
+                {
+                    bool b = true;
+                }
+                
             }).Wait();
             Console.ReadLine();
         }
@@ -43,7 +51,6 @@ namespace TelegramBot
             tgs.MessageRecieved += MessageRecieved;
             tgs.LookForMessages();
 
-            currentConv = new Dictionary<int, Command>();
             actionLib = new Dictionary<string, Command>();
            
             Add(new TodoCommand(ts));
@@ -62,7 +69,7 @@ namespace TelegramBot
             Command c;
             if (currentConv.TryGetValue(m.from.id, out c) && c != null)
             {
-                currentConv.Add(m.contact.user_id, await c.Run(m));
+                currentConv.Add(m.from.id, await c.Run(m));
                 return;
             }
 
