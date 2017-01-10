@@ -12,7 +12,7 @@ namespace TelegramBot.Commands
             this.ts = ts;
         }
 
-        public override async Task<Command> Run(Message m)
+        public override async Task<Command> Run(string query, Message m)
         {
             if (m.reply_to_message != null)
             {
@@ -20,11 +20,11 @@ namespace TelegramBot.Commands
             }
             else
             {
-                await ts.AddTodo(m.text.Replace("/todo", ""));
+                await ts.AddTodo(query);
             }
             return null;
         }
 
-        public override string CommandName => @"/todo";
+        public override string CommandName => "todo";
     }
 }

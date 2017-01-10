@@ -17,7 +17,7 @@ namespace TelegramBot.Commands
             _tg = tg;
         }
 
-        public override async Task<Command> Run(Message m)
+        public override async Task<Command> Run(string query, Message m)
         {
             if (m.reply_to_message != null && m.reply_to_message != null)
             {
@@ -26,6 +26,6 @@ namespace TelegramBot.Commands
             return null;
         }
 
-        public override string CommandName => @"/quote";
+        public override string CommandName => "quote";
     }
 }

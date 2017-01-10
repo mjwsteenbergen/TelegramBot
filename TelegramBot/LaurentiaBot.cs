@@ -56,7 +56,7 @@ namespace TelegramBot
             Add(new QuoteCommand(tgs));
         }
 
-        private void Add(Command com)
+        public void Add(Command com)
         {
             actionLib.Add(com.CommandName, com);
         }
@@ -66,16 +66,31 @@ namespace TelegramBot
             Command c;
             if (currentConv.TryGetValue(m.from.id, out c) && c != null)
             {
-                currentConv.Add(m.contact.user_id, await c.Run(m));
+                currentConv.Add(m.contact.user_id, await c.Run(m.text?? m.query, m));
                 return;
             }
 
-            Match match = Regex.Match(m.text, @"^/\w+");
-
-            if (match.Success && actionLib.TryGetValue(match.Groups[0].Value, out c))
+            if (m.isMessage)
             {
-                currentConv[m.from.id] = await c.Run(m);
+                Match match = Regex.Match(m.text, @"^/(\w+)");
+
+                if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                {
+                    currentConv[m.from.id] = await c.Run(match.Groups[0].Value.Replace("//" + match.Groups[1].Value, ""), m);
+                }
             }
+            else
+            {
+                Match match = Regex.Match(m.query, @"^(\w+)()");
+
+                if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                {
+                    currentConv[m.from.id] = await c.Run(m.query.Replace(match.Groups[1].Value, ""), m);
+                }
+            }
+            
+
+            
         }
     }
 }
