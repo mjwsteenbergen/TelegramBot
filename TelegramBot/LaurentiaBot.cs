@@ -76,16 +76,16 @@ namespace TelegramBot
 
                 if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
                 {
-                    currentConv[m.from.id] = await c.Run(match.Groups[0].Value.Replace("//" + match.Groups[1].Value, ""), m);
+                    currentConv[m.from.id] = await c.Run(m.text.Replace("/" + match.Groups[1].Value + " ", ""), m);
                 }
             }
             else
             {
-                Match match = Regex.Match(m.query, @"^(\w+)()");
+                Match match = Regex.Match(m.query, @"^(\w+)");
 
                 if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
                 {
-                    currentConv[m.from.id] = await c.Run(m.query.Replace(match.Groups[1].Value, ""), m);
+                    currentConv[m.from.id] = await c.Run(m.query.Replace(match.Groups[1].Value + " ", ""), m);
                 }
             }
             
