@@ -7,12 +7,12 @@ namespace TelegramBot.Commands
     internal class TodoCommand : Command
     {
         private TodoistService ts;
-        public TodoCommand(TodoistService ts)
+        public TodoCommand(TodoistService ts, TelegramService tgs) : base(tgs)
         {
             this.ts = ts;
         }
 
-        public override async Task<Command> Run(string query, Message m)
+        public override async Task<Command> Run(string query, TgMessage m)
         {
             if (m.reply_to_message != null)
             {

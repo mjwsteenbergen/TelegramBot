@@ -51,7 +51,7 @@ namespace TelegramBot
             currentConv = new Dictionary<int, Command>();
             actionLib = new Dictionary<string, Command>();
            
-            Add(new TodoCommand(ts));
+            Add(new TodoCommand(ts, tgs));
             Add(new PingCommand(tgs));
             Add(new QuoteCommand(tgs));
         }
@@ -61,31 +61,33 @@ namespace TelegramBot
             actionLib.Add(com.CommandName, com);
         }
 
-        private async void MessageRecieved(Message m, EventArgs e)
+        private async void MessageRecieved(TgMessages m, EventArgs e)
         {
             Command c;
-            if (currentConv.TryGetValue(m.from.id, out c) && c != null)
-            {
-                currentConv.Add(m.contact.user_id, await c.Run(m.text?? m.query, m));
-                return;
-            }
 
-            if (m.isMessage)
+            foreach (TgMessage message in m.Messages)
             {
-                Match match = Regex.Match(m.text, @"^/(\w+)");
+                if (currentConv.TryGetValue(message.from.id, out c) && c != null)
+                {
+                    currentConv.Add(message.from.id, await c.Run(message.text, message));
+                    continue;
+                }
+
+                Match match = Regex.Match(message.text, @"^/(\w+)");
 
                 if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
                 {
-                    currentConv[m.from.id] = await c.Run(m.text.Replace("/" + match.Groups[1].Value + " ", ""), m);
+                    currentConv[message.from.id] = await c.Run(message.text.Replace("/" + match.Groups[1].Value + " ", ""), message);
                 }
             }
-            else
+            
+            foreach (TgInlineQuery inlineQuery in m.tgInlineQueries)
             {
-                Match match = Regex.Match(m.query, @"^(\w+)");
+                Match match = Regex.Match(inlineQuery.query, @"^(\w+)");
 
                 if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
                 {
-                    currentConv[m.from.id] = await c.Run(m.query.Replace(match.Groups[1].Value + " ", ""), m);
+                    currentConv[inlineQuery.from.id] = await c.Run(inlineQuery.query.Replace(match.Groups[1].Value + " ", ""), inlineQuery);
                 }
             }
             

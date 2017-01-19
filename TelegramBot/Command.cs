@@ -6,7 +6,24 @@ namespace TelegramBot
 {
     public abstract class Command
     {
-        public abstract Task<Command> Run(string query, Message m);
+        protected internal TelegramService _tgs;
+
+        public Command(TelegramService tgs)
+        {
+            _tgs = tgs;
+        }
+
+        public virtual async Task<Command> Run(string query, TgMessage m)
+        {
+            await _tgs.SendMessage(m.from.id, "This is not supported for this command");
+            return null;
+        }
+
+        public virtual Task<Command> Run(string query, TgInlineQuery m)
+        {
+            return null;
+        }
+
         public abstract string CommandName { get; }
     }
 }
