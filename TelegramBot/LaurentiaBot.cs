@@ -64,7 +64,16 @@ namespace TelegramBot
                 while (true)
                 {
                    TgMessages messages = await _tgs.GetMessages(1000);
-                   MessageRecieved(messages, EventArgs.Empty);
+                    try
+                    {
+                        MessageRecieved(messages, EventArgs.Empty);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        await _tgs.SendMessage(admin, "*Telegrambot encountered error while handling message:*" + e.Message);
+                        await _tgs.SendMessage(admin, e.StackTrace);
+                    }
                 }
             }
             catch (Exception e)
