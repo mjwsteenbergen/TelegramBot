@@ -24,6 +24,11 @@ namespace TelegramBot
             return null;
         }
 
+        public virtual Task<Command> Run(string query, ChosenInlineResult m)
+        {
+            return null;
+        }
+
         public abstract string CommandName { get; }
     }
 }

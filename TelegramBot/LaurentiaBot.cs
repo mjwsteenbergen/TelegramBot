@@ -50,6 +50,7 @@ namespace TelegramBot
             Add(new TodoCommand(ts, tgs));
             Add(new PingCommand(tgs));
             Add(new QuoteCommand(tgs));
+            Add(new ExampleCommand(tgs));
         }
 
         /// <summary>
@@ -118,7 +119,17 @@ namespace TelegramBot
                     currentConv[inlineQuery.from.id] = await c.Run(inlineQuery.query.Replace(match.Groups[1].Value + " ", ""), inlineQuery);
                 }
             }
-            
+
+
+            foreach (ChosenInlineResult inlineResult in m.ChosenInlineResults)
+            {
+                Match match = Regex.Match(inlineResult.query, @"^(\w+)");
+
+                if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                {
+                    currentConv[inlineResult.from.id] = await c.Run(inlineResult.query.Replace(match.Groups[1].Value + " ", ""), inlineResult);
+                }
+            }
 
             
         }
