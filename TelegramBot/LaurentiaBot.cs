@@ -65,16 +65,7 @@ namespace TelegramBot
                 while (true)
                 {
                    TgMessages messages = await _tgs.GetMessages(1000);
-                    try
-                    {
-                        MessageRecieved(messages, EventArgs.Empty);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                        await _tgs.SendMessage(admin, "*Telegrambot encountered error while handling message:*" + e.Message);
-                        await _tgs.SendMessage(admin, e.StackTrace);
-                    }
+                    await MessageRecieved(messages, EventArgs.Empty);
                 }
             }
             catch (Exception e)
@@ -90,48 +81,75 @@ namespace TelegramBot
             actionLib.Add(com.CommandName, com);
         }
 
-        private async void MessageRecieved(TgMessages m, EventArgs e)
+        private async Task MessageRecieved(TgMessages m, EventArgs e)
         {
             Command c;
 
             foreach (TgMessage message in m.Messages)
             {
-                if (currentConv.TryGetValue(message.from.id, out c) && c != null)
+                try
                 {
-                    currentConv.Add(message.from.id, await c.Run(message.text, message));
-                    continue;
+                    if (currentConv.TryGetValue(message.from.id, out c) && c != null)
+                    {
+                        currentConv.Add(message.from.id, await c.Run(message.text, message));
+                        continue;
+                    }
+
+                    Match match = Regex.Match(message.text, @"^/(\w+)");
+
+                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                    {
+                        currentConv[message.from.id] = await c.Run(message.text.Replace("/" + match.Groups[1].Value + " ", ""), message);
+                    }
                 }
-
-                Match match = Regex.Match(message.text, @"^/(\w+)");
-
-                if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                catch (Exception exception)
                 {
-                    currentConv[message.from.id] = await c.Run(message.text.Replace("/" + match.Groups[1].Value + " ", ""), message);
+                    await HandleException(exception);
                 }
             }
             
             foreach (TgInlineQuery inlineQuery in m.tgInlineQueries)
             {
-                Match match = Regex.Match(inlineQuery.query, @"^(\w+)");
-
-                if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                try
                 {
-                    currentConv[inlineQuery.from.id] = await c.Run(inlineQuery.query.Replace(match.Groups[1].Value + " ", ""), inlineQuery);
+                    Match match = Regex.Match(inlineQuery.query, @"^(\w+)");
+
+                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                    {
+                        currentConv[inlineQuery.from.id] = await c.Run(inlineQuery.query.Replace(match.Groups[1].Value + " ", ""), inlineQuery);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    await HandleException(exception);
                 }
             }
 
 
             foreach (ChosenInlineResult inlineResult in m.ChosenInlineResults)
             {
-                Match match = Regex.Match(inlineResult.query, @"^(\w+)");
-
-                if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                try
                 {
-                    currentConv[inlineResult.from.id] = await c.Run(inlineResult.query.Replace(match.Groups[1].Value + " ", ""), inlineResult);
-                }
-            }
+                    Match match = Regex.Match(inlineResult.query, @"^(\w+)");
 
-            
+                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                    {
+                        currentConv[inlineResult.from.id] = await c.Run(inlineResult.query.Replace(match.Groups[1].Value + " ", ""), inlineResult);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    await HandleException(exception);
+                }
+                
+            }
+        }
+
+        public async Task HandleException(Exception e)
+        {
+            Console.WriteLine(e);
+            await _tgs.SendMessage(admin, "*Telegrambot encountered error while handling message:*" + e.Message, ParseMode.Markdown);
+            await _tgs.SendMessage(admin, e.StackTrace);
         }
     }
 }

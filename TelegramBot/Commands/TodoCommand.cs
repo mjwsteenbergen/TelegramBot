@@ -7,7 +7,6 @@ namespace TelegramBot.Commands
     internal class TodoCommand : Command
     {
         private TodoistService ts;
-        private readonly TelegramService _tgs;
 
         public TodoCommand(TodoistService ts, TelegramService tgs) : base(tgs)
         {
