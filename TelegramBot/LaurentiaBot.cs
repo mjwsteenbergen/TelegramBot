@@ -99,7 +99,9 @@ namespace TelegramBot
 
                     if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
                     {
-                        currentConv[message.from.id] = await c.Run(message.text.Replace("/" + match.Groups[1].Value + " ", ""), message);
+                        string args = message.text.Replace("/" + match.Groups[1].Value + " ", "");
+
+                        currentConv[message.from.id] = await c.Run(args, message);
                     }
                 }
                 catch (Exception exception)
