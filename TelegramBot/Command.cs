@@ -41,11 +41,19 @@ namespace TelegramBot
     {
         public Command(TelegramService tgs) : base(tgs) { }
 
-        public override Task<Command> Run(string query, TgMessage m)
+        public override async Task<Command> Run(string query, TgMessage m)
         {
-            var result = Parser.Default.ParseArguments<T>(query.Split());
+            var result = Parser.Default.ParseArguments<T>(query.Replace("—", "--").Split());
+            Task t = new Task(() => { });
+            if (query.Contains("—help"))
+            {
+                var help = HelpText.AutoBuild(result);
+                help.Copyright = "";
+                help.Heading = "";
+                await _tgs.SendMessage(m.from.id, "*Usage:*" + help, ParseMode.Markdown);
+                return null;
+            }
             Command o = null;
-            Task t = new Task(() => {});
             result.WithNotParsed(errs =>
             {
                 OnError(m, result, errs);
@@ -57,7 +65,7 @@ namespace TelegramBot
                 t.Start();
             });
             t.Wait();
-            return Task.FromResult(o);
+            return o;
         }
 
         private void OnError(TgMessage m, ParserResult<T> result, IEnumerable<Error> errs)
