@@ -64,8 +64,16 @@ namespace TelegramBot
                 await _tgs.SendMessage(admin, "TelegramBot is online");
                 while (true)
                 {
-                   TgMessages messages = await _tgs.GetMessages(1000);
-                    await MessageRecieved(messages, EventArgs.Empty);
+                    try
+                    {
+                        TgMessages messages = await _tgs.GetMessages(1000);
+                        await MessageRecieved(messages, EventArgs.Empty);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                  
                 }
             }
             catch (Exception e)
