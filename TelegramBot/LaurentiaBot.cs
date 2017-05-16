@@ -64,8 +64,16 @@ namespace TelegramBot
                 await _tgs.SendMessage(admin, "TelegramBot is online");
                 while (true)
                 {
-                   TgMessages messages = await _tgs.GetMessages(1000);
-                    await MessageRecieved(messages, EventArgs.Empty);
+                    try
+                    {
+                        TgMessages messages = await _tgs.GetMessages(1000);
+                        await MessageRecieved(messages, EventArgs.Empty);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                  
                 }
             }
             catch (Exception e)
@@ -99,7 +107,9 @@ namespace TelegramBot
 
                     if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
                     {
-                        currentConv[message.from.id] = await c.Run(message.text.Replace("/" + match.Groups[1].Value + " ", ""), message);
+                        string args = message.text.Replace("/" + match.Groups[1].Value + " ", "");
+
+                        currentConv[message.from.id] = await c.Run(args, message);
                     }
                 }
                 catch (Exception exception)
