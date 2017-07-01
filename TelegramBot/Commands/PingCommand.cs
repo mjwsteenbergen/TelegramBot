@@ -5,7 +5,7 @@ using ApiLibs.Telegram;
 
 namespace TelegramBot.Commands
 {
-    internal class PingCommand : Command
+    public class PingCommand : Command
     {
         private TelegramService tgs;
         private List<string> smartAssAnswers;
@@ -15,6 +15,8 @@ namespace TelegramBot.Commands
             this.tgs = tgs;
             smartAssAnswers = new List<string> { "pong", "pong", "pang", "NO. JUST NO!", "STOP IT", "tableflip"};
         }
+
+        public override Privilege privilege => Privilege.Public;
 
         public override async Task<Command> Run(string query, TgMessage m)
         {
