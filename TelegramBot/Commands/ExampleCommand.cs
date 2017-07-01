@@ -7,11 +7,13 @@ using ApiLibs.Telegram;
 
 namespace TelegramBot
 {
-    class ExampleCommand : Command
+    public class ExampleCommand : Command
     {
         public ExampleCommand(TelegramService tgs) : base(tgs)
         {
         }
+
+        public override Privilege privilege => Privilege.Public;
 
         public override async Task<Command> Run(string query, TgInlineQuery m)
         {
