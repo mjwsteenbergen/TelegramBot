@@ -120,7 +120,7 @@ namespace TelegramBot
                 h.Copyright = "";
                 Task.Run(async () =>
                 {
-                    await _tgs.answerInlineQuery(m.id, new List<InlineQueryResultArticle>
+                    await _tgs.AnswerInlineQuery(m.id, new List<InlineQueryResultArticle>
                     {
                         new InlineQueryResultArticle
                         {
@@ -134,7 +134,7 @@ namespace TelegramBot
             }, e => e);
         }
 
-        public Task<Command> Run(string query, ChosenInlineResult m)
+        public override Task<Command> Run(string query, ChosenInlineResult m)
         {
             return null;
         }
