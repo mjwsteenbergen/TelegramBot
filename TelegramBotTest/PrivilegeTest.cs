@@ -22,7 +22,7 @@ namespace TelegramBotTest
             com.testPrivilege = Privilege.Admin;
 
             bot.Add(com);
-            Assert.IsTrue(bot.hasPrivilige(1, com));
+            Assert.IsTrue(bot.HasPrivilige(1, com));
         }
 
         [Test]
@@ -32,8 +32,8 @@ namespace TelegramBotTest
             com.testPrivilege = Privilege.Admin;
 
             bot.Add(com);
-            Assert.IsFalse(bot.hasPrivilige(2, com));
-            Assert.IsFalse(bot.hasPrivilige(-1, com));
+            Assert.IsFalse(bot.HasPrivilige(2, com));
+            Assert.IsFalse(bot.HasPrivilige(-1, com));
         }
 
         [Test]
@@ -43,7 +43,7 @@ namespace TelegramBotTest
             com.testPrivilege = Privilege.Public;
 
             bot.Add(com);
-            Assert.IsTrue(bot.hasPrivilige(500, com));
+            Assert.IsTrue(bot.HasPrivilige(500, com));
         }
 
         [Test]
@@ -53,9 +53,9 @@ namespace TelegramBotTest
             com.testPrivilege = Privilege.BlackList;
 
             bot.Add(com);
-            Assert.IsTrue(bot.hasPrivilige(2, com));
+            Assert.IsTrue(bot.HasPrivilige(2, com));
             com.PrivilegeList.Add(2);
-            Assert.IsFalse(bot.hasPrivilige(2, com));
+            Assert.IsFalse(bot.HasPrivilige(2, com));
         }
 
         [Test]
@@ -65,9 +65,9 @@ namespace TelegramBotTest
             com.testPrivilege = Privilege.WhiteList;
 
             bot.Add(com);
-            Assert.IsFalse(bot.hasPrivilige(2, com));
+            Assert.IsFalse(bot.HasPrivilige(2, com));
             com.PrivilegeList.Add(2);
-            Assert.IsTrue(bot.hasPrivilige(2, com));
+            Assert.IsTrue(bot.HasPrivilige(2, com));
         }
 
         [Test]
@@ -77,7 +77,7 @@ namespace TelegramBotTest
             com.testPrivilege = Privilege.WhiteList;
 
             bot.Add(com);
-            Assert.IsTrue(bot.hasPrivilige(1, com));
+            Assert.IsTrue(bot.HasPrivilige(1, com));
         }
     }
 

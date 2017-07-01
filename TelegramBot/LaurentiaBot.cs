@@ -61,7 +61,7 @@ namespace TelegramBot
                     try
                     {
                         TgMessages messages = await _tgs.GetMessages(1000);
-                        await MessageRecieved(messages, EventArgs.Empty);
+                        await MessageRecieved(messages);
                     }
                     catch (Exception e)
                     {
@@ -83,7 +83,7 @@ namespace TelegramBot
             actionLib.Add(com.CommandName, com);
         }
 
-        private async Task MessageRecieved(TgMessages m, EventArgs e)
+        private async Task MessageRecieved(TgMessages m)
         {
             Command c;
 
@@ -119,7 +119,7 @@ namespace TelegramBot
                     Match match = Regex.Match(inlineQuery.query, @"^(\w+)");
 
                     if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c) &&
-                        hasPrivilige(inlineQuery.from.id, c))
+                        HasPrivilige(inlineQuery.from.id, c))
                     {
                         currentConv[inlineQuery.from.id] =
                             await c.Run(inlineQuery.query.Replace(match.Groups[1].Value + " ", ""), inlineQuery);
@@ -128,7 +128,7 @@ namespace TelegramBot
                     {
                         if (inlineQuery.query.Replace(" ", "") == "")
                         {
-                            await _tgs.answerInlineQuery(inlineQuery.id, new List<InlineQueryResultArticle>
+                            await _tgs.AnswerInlineQuery(inlineQuery.id, new List<InlineQueryResultArticle>
                             {
                                 new InlineQueryResultArticle
                                 {
@@ -169,7 +169,7 @@ namespace TelegramBot
             }
         }
 
-        public bool hasPrivilige(int fromId, Command c)
+        public bool HasPrivilige(int fromId, Command c)
         {
             switch (c.privilege)
             {

@@ -134,7 +134,7 @@ namespace TelegramBot
             }, e => e);
         }
 
-        public Task<Command> Run(string query, ChosenInlineResult m)
+        public override Task<Command> Run(string query, ChosenInlineResult m)
         {
             return null;
         }
