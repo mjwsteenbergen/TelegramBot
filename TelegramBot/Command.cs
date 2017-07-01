@@ -13,6 +13,10 @@ namespace TelegramBot
     {
         protected internal TelegramService _tgs;
 
+        public virtual Privilege privilege => Privilege.Admin;
+
+        public List<int> PrivilegeList = new List<int>();
+
         public Command(TelegramService tgs)
         {
             _tgs = tgs;
@@ -35,6 +39,11 @@ namespace TelegramBot
         }
 
         public abstract string CommandName { get; }
+    }
+
+    public enum Privilege
+    {
+        Admin, WhiteList, BlackList, Public
     }
 
     public abstract class Command<T> : Command where T : new()

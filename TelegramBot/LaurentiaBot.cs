@@ -31,26 +31,20 @@ namespace TelegramBot
             "Laurentia" + Path.DirectorySeparatorChar);
 
             TelegramService tgs = new TelegramService(passwords.Telegram_token, ApplicationDataPath);
-            TodoistService todoist = new TodoistService(passwords.TodoistKey, passwords.TodoistUserAgent);
 
-            LaurentiaBot bot = new LaurentiaBot(tgs, todoist, -1);
+            LaurentiaBot bot = new LaurentiaBot(tgs, -1);
             Task.Run(async () =>
             {
                 await bot.Run();
             }).Wait();
         }
 
-        public LaurentiaBot(TelegramService tgs, TodoistService ts, int adminId)
+        public LaurentiaBot(TelegramService tgs, int adminId)
         {
             admin = adminId;
             _tgs = tgs;
             currentConv = new Dictionary<int, Command>();
             actionLib = new Dictionary<string, Command>();
-           
-            Add(new TodoCommand(ts, tgs));
-            Add(new PingCommand(tgs));
-            Add(new QuoteCommand(tgs));
-            Add(new ExampleCommand(tgs));
         }
 
         /// <summary>
@@ -124,9 +118,29 @@ namespace TelegramBot
                 {
                     Match match = Regex.Match(inlineQuery.query, @"^(\w+)");
 
-                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c) &&
+                        hasPrivilige(inlineQuery.from.id, c))
                     {
-                        currentConv[inlineQuery.from.id] = await c.Run(inlineQuery.query.Replace(match.Groups[1].Value + " ", ""), inlineQuery);
+                        currentConv[inlineQuery.from.id] =
+                            await c.Run(inlineQuery.query.Replace(match.Groups[1].Value + " ", ""), inlineQuery);
+                    }
+                    else
+                    {
+                        if (inlineQuery.query.Replace(" ", "") == "")
+                        {
+                            await _tgs.answerInlineQuery(inlineQuery.id, new List<InlineQueryResultArticle>
+                            {
+                                new InlineQueryResultArticle
+                                {
+                                    id = "1",
+                                    title = "This command is not recognized",
+                                    input_message_content = new InputTextMessageContent
+                                    {
+                                        message_text = "NotFound"
+                                    }
+                                }
+                            });
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -152,6 +166,24 @@ namespace TelegramBot
                     await HandleException(exception);
                 }
                 
+            }
+        }
+
+        public bool hasPrivilige(int fromId, Command c)
+        {
+            switch (c.privilege)
+            {
+                case Privilege.Admin:
+                    return fromId == admin;
+                case Privilege.BlackList:
+                    return !c.PrivilegeList.Contains(fromId);
+                case Privilege.WhiteList:
+                    if (fromId == admin) return true;
+                    return c.PrivilegeList.Contains(fromId);
+                case Privilege.Public:
+                    return true;
+                default:
+                    return false;
             }
         }
 

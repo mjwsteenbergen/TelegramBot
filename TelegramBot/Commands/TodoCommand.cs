@@ -4,7 +4,7 @@ using ApiLibs.Todoist;
 
 namespace TelegramBot.Commands
 {
-    internal class TodoCommand : Command
+    public class TodoCommand : Command
     {
         private TodoistService ts;
 
@@ -13,6 +13,8 @@ namespace TelegramBot.Commands
             this.ts = ts;
             _tgs = tgs;
         }
+
+        public override Privilege privilege => Privilege.WhiteList;
 
         public override async Task<Command> Run(string query, TgMessage m)
         {

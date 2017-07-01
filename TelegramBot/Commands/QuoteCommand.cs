@@ -8,10 +8,12 @@ using TelegramBot;
 
 namespace TelegramBot.Commands
 {
-    class QuoteCommand : Command
+    public class QuoteCommand : Command
     {
         public QuoteCommand(TelegramService tgs) : base (tgs)
         { }
+
+        public override Privilege privilege => Privilege.Public;
 
         public override async Task<Command> Run(string query, TgMessage m)
         {
