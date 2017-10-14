@@ -13,10 +13,10 @@ using TelegramBot.Commands;
 
 namespace TelegramBot
 {
-    public class LaurentiaBot
+    public class TelegramBot
     {
         private readonly TelegramService _tgs;
-        private int admin = -1;
+        public static int admin { get; private set; }
 
         private static readonly string ApplicationDataPath =
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar +
@@ -32,14 +32,14 @@ namespace TelegramBot
 
             TelegramService tgs = new TelegramService(passwords.Telegram_token, ApplicationDataPath);
 
-            LaurentiaBot bot = new LaurentiaBot(tgs, -1);
+            TelegramBot bot = new TelegramBot(tgs, -1);
             Task.Run(async () =>
             {
                 await bot.Run();
             }).Wait();
         }
 
-        public LaurentiaBot(TelegramService tgs, int adminId)
+        public TelegramBot(TelegramService tgs, int adminId)
         {
             admin = adminId;
             _tgs = tgs;
@@ -83,7 +83,7 @@ namespace TelegramBot
             actionLib.Add(com.CommandName, com);
         }
 
-        private async Task MessageRecieved(TgMessages m)
+        public async Task MessageRecieved(TgMessages m)
         {
             Command c;
 
