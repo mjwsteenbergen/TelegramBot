@@ -48,10 +48,11 @@
   <ItemGroup>
     <Compile Include="Command.cs" />
     <Compile Include="Commands\ExampleCommand.cs" />
+    <Compile Include="Commands\IdCommand.cs" />
     <Compile Include="Commands\PingCommand.cs" />
     <Compile Include="Commands\QuoteCommand.cs" />
     <Compile Include="Commands\TodoCommand.cs" />
-    <Compile Include="LaurentiaBot.cs" />
+    <Compile Include="TelegramBot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
