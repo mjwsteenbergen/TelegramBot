@@ -111,7 +111,7 @@ namespace TelegramBot
                 h.Copyright = "";
                 Task.Run(async () =>
                 {
-                    await _tgs.answerInlineQuery(m.id, new List<InlineQueryResultArticle>
+                    await _tgs.AnswerInlineQuery(m.id, new List<InlineQueryResultArticle>
                     {
                         new InlineQueryResultArticle
                         {

@@ -15,7 +15,7 @@ namespace TelegramBot
 
         public override async Task<Command> Run(string query, TgInlineQuery m)
         {
-            await _tgs.answerInlineQuery(m.id, new List<InlineQueryResultArticle>
+            await _tgs.AnswerInlineQuery(m.id, new List<InlineQueryResultArticle>
             {
                 new InlineQueryResultArticle
                 {
