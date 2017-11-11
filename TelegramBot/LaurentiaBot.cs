@@ -15,6 +15,9 @@ namespace TelegramBot
 {
     public class LaurentiaBot
     {
+        private readonly TelegramService _tgs;
+        private int admin = -1;
+
         private static readonly string ApplicationDataPath =
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar +
             "TelegramBot" + Path.DirectorySeparatorChar;
@@ -30,52 +33,123 @@ namespace TelegramBot
             TelegramService tgs = new TelegramService(passwords.Telegram_token, ApplicationDataPath);
             TodoistService todoist = new TodoistService(passwords.TodoistKey, passwords.TodoistUserAgent);
 
+            LaurentiaBot bot = new LaurentiaBot(tgs, todoist, -1);
             Task.Run(async () =>
             {
-                await tgs.SendMessage(13173126, "TelegramBot is online");
+                await bot.Run();
             }).Wait();
-            LaurentiaBot bot = new LaurentiaBot(tgs, todoist);
-            while (true)
-            {
-                Thread.Sleep(int.MaxValue);
-            }
-            Console.ReadLine();
-
-
         }
 
-        public LaurentiaBot(TelegramService tgs, TodoistService ts)
+        public LaurentiaBot(TelegramService tgs, TodoistService ts, int adminId)
         {
-            tgs.MessageRecieved += MessageRecieved;
-            tgs.LookForMessages();
+            admin = adminId;
+            _tgs = tgs;
             currentConv = new Dictionary<int, Command>();
             actionLib = new Dictionary<string, Command>();
            
-            Add(new TodoCommand(ts));
+            Add(new TodoCommand(ts, tgs));
             Add(new PingCommand(tgs));
             Add(new QuoteCommand(tgs));
+            Add(new ExampleCommand(tgs));
         }
 
-        private void Add(Command com)
+        /// <summary>
+        /// Runs the bot
+        /// WARNING: Infinite loop
+        /// </summary>
+        public async Task Run()
+        {
+            try
+            {
+                await _tgs.SendMessage(admin, "TelegramBot is online");
+                while (true)
+                {
+                   TgMessages messages = await _tgs.GetMessages(1000);
+                    await MessageRecieved(messages, EventArgs.Empty);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                await _tgs.SendMessage(admin, "*Telegrambot encountered fatal error:* " + e.Message, ParseMode.Markdown);
+                await _tgs.SendMessage(admin, "Stacktrace: \n" + e.StackTrace);
+            }
+        }
+
+        public void Add(Command com)
         {
             actionLib.Add(com.CommandName, com);
         }
 
-        private async void MessageRecieved(Message m, EventArgs e)
+        private async Task MessageRecieved(TgMessages m, EventArgs e)
         {
             Command c;
-            if (currentConv.TryGetValue(m.from.id, out c) && c != null)
+
+            foreach (TgMessage message in m.Messages)
             {
-                currentConv.Add(m.contact.user_id, await c.Run(m));
-                return;
+                try
+                {
+                    if (currentConv.TryGetValue(message.from.id, out c) && c != null)
+                    {
+                        currentConv.Add(message.from.id, await c.Run(message.text, message));
+                        continue;
+                    }
+
+                    Match match = Regex.Match(message.text, @"^/(\w+)");
+
+                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                    {
+                        currentConv[message.from.id] = await c.Run(message.text.Replace("/" + match.Groups[1].Value + " ", ""), message);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    await HandleException(exception);
+                }
+            }
+            
+            foreach (TgInlineQuery inlineQuery in m.tgInlineQueries)
+            {
+                try
+                {
+                    Match match = Regex.Match(inlineQuery.query, @"^(\w+)");
+
+                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                    {
+                        currentConv[inlineQuery.from.id] = await c.Run(inlineQuery.query.Replace(match.Groups[1].Value + " ", ""), inlineQuery);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    await HandleException(exception);
+                }
             }
 
-            Match match = Regex.Match(m.text, @"^/\w+");
 
-            if (match.Success && actionLib.TryGetValue(match.Groups[0].Value, out c))
+            foreach (ChosenInlineResult inlineResult in m.ChosenInlineResults)
             {
-                currentConv[m.from.id] = await c.Run(m);
+                try
+                {
+                    Match match = Regex.Match(inlineResult.query, @"^(\w+)");
+
+                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
+                    {
+                        currentConv[inlineResult.from.id] = await c.Run(inlineResult.query.Replace(match.Groups[1].Value + " ", ""), inlineResult);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    await HandleException(exception);
+                }
+                
             }
+        }
+
+        public async Task HandleException(Exception e)
+        {
+            Console.WriteLine(e);
+            await _tgs.SendMessage(admin, "*Telegrambot encountered error while handling message:*" + e.Message, ParseMode.Markdown);
+            await _tgs.SendMessage(admin, e.StackTrace);
         }
     }
 }

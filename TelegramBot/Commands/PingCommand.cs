@@ -10,22 +10,19 @@ namespace TelegramBot.Commands
         private TelegramService tgs;
         private List<string> smartAssAnswers;
 
-        public PingCommand(TelegramService tgs)
+        public PingCommand(TelegramService tgs) : base(tgs)
         {
             this.tgs = tgs;
             smartAssAnswers = new List<string> { "pong", "pong", "pang", "NO. JUST NO!", "STOP IT", "tableflip"};
         }
 
-        public override async Task<Command> Run(Message m)
+        public override async Task<Command> Run(string query, TgMessage m)
         {
             Random r = new Random();
             await tgs.SendMessage(m.chat.id, smartAssAnswers[(int)((double)(smartAssAnswers.Count-1) * r.NextDouble())]);
             return null;
         }
 
-        public override string CommandName
-        {
-            get { return @"/ping"; }
-        }
+        public override string CommandName => "ping";
     }
 }
