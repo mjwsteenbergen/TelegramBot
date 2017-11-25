@@ -52,6 +52,7 @@
     <Compile Include="Commands\PingCommand.cs" />
     <Compile Include="Commands\QuoteCommand.cs" />
     <Compile Include="Commands\TodoCommand.cs" />
+    <Compile Include="IKeyValueStore.cs" />
     <Compile Include="TelegramBot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

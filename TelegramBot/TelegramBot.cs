@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-﻿using System.Threading;
-﻿using System.Threading.Tasks;
+using System.Threading;
+using System.Threading.Tasks;
 using ApiLibs.General;
 using ApiLibs.Telegram;
 using ApiLibs.Todoist;
@@ -22,8 +22,8 @@ namespace TelegramBot
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar +
             "TelegramBot" + Path.DirectorySeparatorChar;
 
-        Dictionary<string, Command> actionLib;
-        private Dictionary<int, Command> currentConv;
+        List<Command> actionLib;
+        private IKeyValueStore store;
 
         public static void Main(string[] args)
         {
@@ -43,8 +43,7 @@ namespace TelegramBot
         {
             admin = adminId;
             _tgs = tgs;
-            currentConv = new Dictionary<int, Command>();
-            actionLib = new Dictionary<string, Command>();
+            actionLib = new List<Command>();
         }
 
         /// <summary>
@@ -60,8 +59,8 @@ namespace TelegramBot
                 {
                     try
                     {
-                        TgMessages messages = await _tgs.GetMessages(1000);
-                        await MessageRecieved(messages);
+                        //TgMessages messages = await _tgs.GetMessages(1000);
+                        //await MessageRecieved(messages);
                     }
                     catch (Exception e)
                     {
@@ -80,93 +79,100 @@ namespace TelegramBot
 
         public void Add(Command com)
         {
-            actionLib.Add(com.CommandName, com);
+            actionLib.Add(com);
         }
 
-        public async Task MessageRecieved(TgMessages m)
+
+        public async Task MessageRecieved(TgMessage message)
+        {
+            var c = ConvertToCommand(store.Get(message.from.id.ToString()));
+            if (c != null)
+            {
+                Command returnCommand = await c.Run(message.text, message);
+                store.Set("ReturnFunction", returnCommand.CommandName);
+            }
+
+            Match match = Regex.Match(message.text, @"^/(\w+)");
+            if (match.Success)
+            {
+                string commandName = match.Groups[1].Value;
+                var res = ConvertToCommand(commandName);
+                if (res != null && HasPrivilige(message.from.id, res))
+                {
+                    var args = message.text.Replace(commandName, "");
+                    if (args.StartsWith(" "))
+                    {
+                        args = args.Remove(0, 1);
+                    }
+                    Command returnCommand = await res.Run(args, message);
+                    store.Set("ReturnFunction", returnCommand.CommandName);
+                }
+            }
+        }
+
+        public async Task MessageRecieved(TgInlineQuery inlineQuery)
+        {
+
+            Match match = Regex.Match(inlineQuery.query, @"^(\w+)");
+            if (match.Success)
+            {
+                string commandName = match.Groups[1].Value;
+                var res = ConvertToCommand(commandName);
+                if (res != null && HasPrivilige(inlineQuery.from.id, res))
+                {
+                    var args = inlineQuery.query.Replace(commandName, "");
+                    if (args.StartsWith(" "))
+                    {
+                        args = args.Remove(0, 1);
+                    }
+                    await res.Run(args, inlineQuery);
+                }
+            }
+            else
+            {
+                if (inlineQuery.query.Replace(" ", "") == "")
+                {
+                    await _tgs.AnswerInlineQuery(inlineQuery.id, new List<InlineQueryResultArticle>
+                    {
+                        new InlineQueryResultArticle
+                        {
+                            id = "1",
+                            title = "This command is not recognized",
+                            input_message_content = new InputTextMessageContent
+                            {
+                                message_text = "NotFound"
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        public async Task MessageRecieved(ChosenInlineResult inlineResult)
         {
             Command c;
-
-            foreach (TgMessage message in m.Messages)
+            Match match = Regex.Match(inlineResult.query, @"^(\w+)");
+            if (match.Success)
             {
-                try
+                string commandName = match.Groups[1].Value;
+                var res = ConvertToCommand(commandName);
+                if (res != null)
                 {
-                    if (currentConv.TryGetValue(message.from.id, out c) && c != null)
-                    {
-                        currentConv.Add(message.from.id, await c.Run(message.text, message));
-                        continue;
-                    }
-
-                    Match match = Regex.Match(message.text, @"^/(\w+)");
-
-                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
-                    {
-                        string args = message.text.Replace("/" + match.Groups[1].Value + " ", "");
-
-                        currentConv[message.from.id] = await c.Run(args, message);
-                    }
-                }
-                catch (Exception exception)
-                {
-                    await HandleException(exception);
+                    Command returnCommand = await res.Run(inlineResult.query.Replace(commandName + " ", ""), inlineResult);
+                    store.Set("ReturnFunction", returnCommand.CommandName);
                 }
             }
             
-            foreach (TgInlineQuery inlineQuery in m.tgInlineQueries)
-            {
-                try
-                {
-                    Match match = Regex.Match(inlineQuery.query, @"^(\w+)");
+        }
 
-                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c) &&
-                        HasPrivilige(inlineQuery.from.id, c))
-                    {
-                        currentConv[inlineQuery.from.id] =
-                            await c.Run(inlineQuery.query.Replace(match.Groups[1].Value + " ", ""), inlineQuery);
-                    }
-                    else
-                    {
-                        if (inlineQuery.query.Replace(" ", "") == "")
-                        {
-                            await _tgs.AnswerInlineQuery(inlineQuery.id, new List<InlineQueryResultArticle>
-                            {
-                                new InlineQueryResultArticle
-                                {
-                                    id = "1",
-                                    title = "This command is not recognized",
-                                    input_message_content = new InputTextMessageContent
-                                    {
-                                        message_text = "NotFound"
-                                    }
-                                }
-                            });
-                        }
-                    }
-                }
-                catch (Exception exception)
-                {
-                    await HandleException(exception);
-                }
+        private Command ConvertToCommand(string commandName)
+        {
+            if (commandName == null)
+            {
+                return null;
             }
 
-
-            foreach (ChosenInlineResult inlineResult in m.ChosenInlineResults)
-            {
-                try
-                {
-                    Match match = Regex.Match(inlineResult.query, @"^(\w+)");
-
-                    if (match.Success && actionLib.TryGetValue(match.Groups[1].Value, out c))
-                    {
-                        currentConv[inlineResult.from.id] = await c.Run(inlineResult.query.Replace(match.Groups[1].Value + " ", ""), inlineResult);
-                    }
-                }
-                catch (Exception exception)
-                {
-                    await HandleException(exception);
-                }
-                
-            }
+            return actionLib.Find(i => i.CommandName == commandName);
         }
 
         public bool HasPrivilige(int fromId, Command c)
@@ -187,11 +193,9 @@ namespace TelegramBot
             }
         }
 
-        public async Task HandleException(Exception e)
+        public void SetKeyValue(IKeyValueStore keyValueStore)
         {
-            Console.WriteLine(e);
-            await _tgs.SendMessage(admin, "*Telegrambot encountered error while handling message:*" + e.Message, ParseMode.Markdown);
-            await _tgs.SendMessage(admin, e.StackTrace);
+            store = keyValueStore;
         }
     }
 }
