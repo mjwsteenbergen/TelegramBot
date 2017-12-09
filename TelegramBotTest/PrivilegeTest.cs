@@ -7,12 +7,12 @@ namespace TelegramBotTest
 {
     public class PrivilegeTest
     {
-        LaurentiaBot bot;
+        TelegramBot.TelegramBot bot;
 
         [SetUp]
         public void SetUp()
         {
-            bot = new LaurentiaBot(new TelegramService("a", "a"), 1);
+            bot = new TelegramBot.TelegramBot(new TelegramService("a", "a"), 1);
         }
 
         [Test]
