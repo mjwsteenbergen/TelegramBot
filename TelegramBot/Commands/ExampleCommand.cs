@@ -15,7 +15,7 @@ namespace TelegramBot
 
         public override Privilege privilege => Privilege.Public;
 
-        public override async Task<Command> Run(string query, TgInlineQuery m)
+        public override async Task Run(string query, TgInlineQuery m)
         {
             await _tgs.AnswerInlineQuery(m.id, new List<InlineQueryResultArticle>
             {
@@ -29,13 +29,11 @@ namespace TelegramBot
                     }
                 }
             });
-            return null;
         }
 
-        public override async Task<Command> Run(string query, ChosenInlineResult m)
+        public override async Task Run(string query, ChosenInlineResult m)
         {
             await _tgs.SendMessage(m.from.id, "You chose " + m.result_id + " from query " + query + " official query: " + m.query);
-            return null;
         }
 
         public override string CommandName => "Example";

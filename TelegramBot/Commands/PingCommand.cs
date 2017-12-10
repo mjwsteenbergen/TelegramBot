@@ -18,11 +18,10 @@ namespace TelegramBot.Commands
 
         public override Privilege privilege => Privilege.Public;
 
-        public override async Task<Command> Run(string query, TgMessage m)
+        public override async Task Run(string query, TgMessage m, IKeyValueStore store)
         {
             Random r = new Random();
             await tgs.SendMessage(m.chat.id, smartAssAnswers[(int)((double)(smartAssAnswers.Count-1) * r.NextDouble())]);
-            return null;
         }
 
         public override string CommandName => "ping";

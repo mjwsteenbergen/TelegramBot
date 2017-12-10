@@ -54,9 +54,10 @@ namespace TelegramBotTest
 
         }
 
-        public override Task<Command> Run(string query, TgMessage m)
+        public override Task Run(string query, TgMessage m, IKeyValueStore store)
         {
-            return Task.FromResult(test.Invoke(query, m));
+            test.Invoke(query, m);
+            return Task.CompletedTask;
         }
 
         public Func<string, TgMessage, Command> test;

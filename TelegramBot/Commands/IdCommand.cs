@@ -14,10 +14,9 @@ namespace TelegramBot.Commands
 
         }
 
-        public override async Task<Command> Run(string query, TgMessage m)
+        public override async Task Run(string query, TgMessage m, IKeyValueStore store)
         {
             await _tgs.SendMessage(m.chat.id, m.from.id.ToString());
-            return null;
         }
 
         public override string CommandName => "getId";

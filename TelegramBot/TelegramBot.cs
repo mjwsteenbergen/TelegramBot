@@ -23,7 +23,7 @@ namespace TelegramBot
             "TelegramBot" + Path.DirectorySeparatorChar;
 
         List<Command> actionLib;
-        private IKeyValueStore store;
+        private IDatabaseValueStore database;
 
         public static void Main(string[] args)
         {
@@ -39,11 +39,12 @@ namespace TelegramBot
             }).Wait();
         }
 
-        public TelegramBot(TelegramService tgs, int adminId)
+        public TelegramBot(TelegramService tgs, int adminId, IDatabaseValueStore valueStore = null)
         {
             admin = adminId;
             _tgs = tgs;
             actionLib = new List<Command>();
+            database = valueStore;
         }
 
         /// <summary>
@@ -85,12 +86,12 @@ namespace TelegramBot
 
         public async Task MessageRecieved(TgMessage message)
         {
-            var c = ConvertToCommand(store.Get(message.from.id.ToString()));
-            if (c != null)
+            var store = await database.GetUserData(message.from.id);
+            if (store.Get("ReturnFunction") != null && store.Get("ReturnFunction") != "")
             {
-                Command returnCommand = await c.Run(message.text, message);
-                store.Set("ReturnFunction", returnCommand.CommandName);
+                await store.Set("ReturnFunction", "");
             }
+
 
             Match match = Regex.Match(message.text, @"^/(\w+)");
             if (match.Success)
@@ -104,8 +105,18 @@ namespace TelegramBot
                     {
                         args = args.Remove(0, 1);
                     }
-                    Command returnCommand = await res.Run(args, message);
-                    store.Set("ReturnFunction", returnCommand.CommandName);
+                    await res.Run(args, message, store);
+                }
+            }
+            else
+            {
+                if (store.Get("ReturnFunction") != null && store.Get("ReturnFunction") != "")
+                {
+                    var res = ConvertToCommand(store.Get("ReturnFunction").Split('?')[0]);
+                    if (res != null)
+                    {
+                        await res.Run(message.text, message, store);
+                    }
                 }
             }
         }
@@ -158,8 +169,7 @@ namespace TelegramBot
                 var res = ConvertToCommand(commandName);
                 if (res != null)
                 {
-                    Command returnCommand = await res.Run(inlineResult.query.Replace(commandName + " ", ""), inlineResult);
-                    store.Set("ReturnFunction", returnCommand.CommandName);
+                    await res.Run(inlineResult.query.Replace(commandName + " ", ""), inlineResult);
                 }
             }
             
@@ -191,11 +201,6 @@ namespace TelegramBot
                 default:
                     return false;
             }
-        }
-
-        public void SetKeyValue(IKeyValueStore keyValueStore)
-        {
-            store = keyValueStore;
         }
     }
 }

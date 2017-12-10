@@ -16,7 +16,7 @@ namespace TelegramBot.Commands
 
         public override Privilege privilege => Privilege.WhiteList;
 
-        public override async Task<Command> Run(string query, TgMessage m)
+        public override async Task Run(string query, TgMessage m, IKeyValueStore store)
         {
             if (m.reply_to_message != null)
             {
@@ -28,8 +28,6 @@ namespace TelegramBot.Commands
             }
 
             await _tgs.SendMessage(m.from.id, "Todo was added");
-
-            return null;
         }
 
         public override string CommandName => "todo";

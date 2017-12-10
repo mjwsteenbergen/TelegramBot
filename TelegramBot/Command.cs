@@ -22,20 +22,19 @@ namespace TelegramBot
             _tgs = tgs;
         }
 
-        public virtual async Task<Command> Run(string query, TgMessage m)
+        public virtual async Task Run(string query, TgMessage m, IKeyValueStore store)
         {
             await _tgs.SendMessage(m.from.id, "This is not supported for this command");
-            return null;
         }
 
-        public virtual Task<Command> Run(string query, TgInlineQuery m)
+        public virtual Task Run(string query, TgInlineQuery m)
         {
-            return Task.FromResult((Command) null);
+            return Task.CompletedTask;
         }
 
-        public virtual Task<Command> Run(string query, ChosenInlineResult m)
+        public virtual Task Run(string query, ChosenInlineResult m)
         {
-            return Task.FromResult((Command) null);
+            return Task.CompletedTask;
         }
 
         public abstract string CommandName { get; }
@@ -50,7 +49,7 @@ namespace TelegramBot
     {
         public Command(TelegramService tgs) : base(tgs) { }
 
-        public override async Task<Command> Run(string query, TgMessage m)
+        public override async Task Run(string query, TgMessage m, IKeyValueStore store)
         {
             var result = Parser.Default.ParseArguments<T>(query.Replace("—", "--").Split());
             Task t = new Task(() => { });
@@ -60,7 +59,6 @@ namespace TelegramBot
                 help.Copyright = "";
                 help.Heading = "";
                 await _tgs.SendMessage(m.from.id, "*Usage:*" + help, ParseMode.Markdown);
-                return null;
             }
             Command o = null;
             result.WithNotParsed(errs =>
@@ -70,11 +68,10 @@ namespace TelegramBot
             });
             result.WithParsed(async args =>
             {
-                o = await Run(args, m);
+                await Run(args, m, store);
                 t.Start();
             });
             t.Wait();
-            return o;
         }
 
         private void OnError(TgMessage m, ParserResult<T> result, IEnumerable<Error> errs)
@@ -92,7 +89,7 @@ namespace TelegramBot
             }, e => e);
         }
 
-        public override Task<Command> Run(string query, TgInlineQuery m)
+        public override Task Run(string query, TgInlineQuery m)
         {
             var result = Parser.Default.ParseArguments<T>(query.Split());
             Command o = null;
@@ -104,11 +101,11 @@ namespace TelegramBot
             });
             result.WithParsed(async args =>
             {
-                o = await Run(args, m);
+                await Run(args, m);
                 t.Start();
             });
             t.Wait();
-            return Task.FromResult(o);
+            return Task.CompletedTask;
         }
 
         private void OnError(TgInlineQuery m, ParserResult<T> result, IEnumerable<Error> errs)
@@ -134,23 +131,22 @@ namespace TelegramBot
             }, e => e);
         }
 
-        public override Task<Command> Run(string query, ChosenInlineResult m)
+        public override Task Run(string query, ChosenInlineResult m)
         {
             return null;
         }
 
-        public virtual async Task<Command> Run(T query, TgMessage m)
+        public virtual async Task Run(T query, TgMessage m, IKeyValueStore store)
         {
             await _tgs.SendMessage(m.from.id, "This is not supported for this command");
-            return null;
         }
 
-        public virtual Task<Command> Run(T query, TgInlineQuery m)
+        public virtual Task Run(T query, TgInlineQuery m)
         {
             return null;
         }
 
-        public virtual Task<Command> Run(T query, ChosenInlineResult m)
+        public virtual Task Run(T query, ChosenInlineResult m)
         {
             return null;
         }
