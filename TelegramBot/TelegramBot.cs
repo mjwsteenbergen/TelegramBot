@@ -86,12 +86,15 @@ namespace TelegramBot
 
         public async Task MessageRecieved(TgMessage message)
         {
-            var store = await database.GetUserData(message.from.id);
-            if (store.Get("ReturnFunction") != null && store.Get("ReturnFunction") != "")
+            IKeyValueStore store = null;
+            if (database != null)
             {
-                await store.Set("ReturnFunction", "");
+                store = await database.GetUserData(message.from.id);
+                if (store.Get("ReturnFunction") != null && store.Get("ReturnFunction") != "")
+                {
+                    await store.Set("ReturnFunction", "");
+                }
             }
-
 
             Match match = Regex.Match(message.text, @"^/(\w+)");
             if (match.Success)
@@ -100,7 +103,7 @@ namespace TelegramBot
                 var res = ConvertToCommand(commandName);
                 if (res != null && HasPrivilige(message.from.id, res))
                 {
-                    var args = message.text.Replace(commandName, "");
+                    var args = message.text.Replace("/" + commandName, "");
                     if (args.StartsWith(" "))
                     {
                         args = args.Remove(0, 1);

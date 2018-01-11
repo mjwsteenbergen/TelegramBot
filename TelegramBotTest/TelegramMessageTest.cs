@@ -8,6 +8,7 @@ using TelegramBot;
 
 namespace TelegramBotTest
 {
+
     public class TelegramMessageTest
     {
         private TelegramBot.TelegramBot bot;
