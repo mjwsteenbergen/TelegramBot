@@ -15,9 +15,9 @@ namespace TelegramBot
 
         public override Privilege privilege => Privilege.Public;
 
-        public override async Task Run(string query, TgInlineQuery m)
+        public override async Task<IEnumerable<InlineQueryResultArticle>> Run(string query, TgInlineQuery m)
         {
-            await _tgs.AnswerInlineQuery(m.id, new List<InlineQueryResultArticle>
+            return new List<InlineQueryResultArticle>
             {
                 new InlineQueryResultArticle
                 {
@@ -28,7 +28,7 @@ namespace TelegramBot
                         message_text = "Text that is displayed when tapped"
                     }
                 }
-            });
+            };
         }
 
         public override async Task Run(string query, ChosenInlineResult m)

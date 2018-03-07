@@ -3,15 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace TelegramBot
 {
-    public class UriParser
+    public class UriHandler
     {
-        public string Command { get; private set; }
+        public string Command { get; set; }
         private List<UriParameter> parameters { get; set; }
 
-        public UriParser(string input)
+        public UriHandler(Command c) {
+            Command = c.CommandName;
+            parameters = new List<UriParameter>();
+        }
+
+        public UriHandler(string input)
         {
             parameters = new List<UriParameter>();
             if (string.IsNullOrEmpty(input))
@@ -102,6 +108,10 @@ namespace TelegramBot
             }
         }
 
+        public bool IsNotSet() {
+            return string.IsNullOrEmpty(Command);
+        }
+
         public void Set(string key, string value, bool escapeQuote = false)
         {
             value = escapeQuote ? Regex.Replace(value, @"(?<!\\)'", @"\'").Replace('"', '\'') : value;
@@ -123,12 +133,17 @@ namespace TelegramBot
             return parameters.FirstOrDefault(i => i.name == key);
         }
 
+        public string GetParameterValue(string key)
+        {
+            return parameters.FirstOrDefault(i => i.name == key)?.value;
+        }
+
         public string ToUrl()
         {
             return Command + "?" + parameters.Select(i => i.ToUrl()).Aggregate((i, j) => i + "&" + j);
         }
 
-        public T Find<T>(string key)
+        public T GetParameterValue<T>(string key)
         {
             string find = Find(key)?.value;
             return find == null ? default(T) : Newtonsoft.Json.JsonConvert.DeserializeObject<T>(find);

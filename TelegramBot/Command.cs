@@ -27,9 +27,9 @@ namespace TelegramBot
             await _tgs.SendMessage(m.from.id, "This is not supported for this command");
         }
 
-        public virtual Task Run(string query, TgInlineQuery m)
+        public virtual Task<IEnumerable<InlineQueryResultArticle>> Run(string query, TgInlineQuery m)
         {
-            return Task.CompletedTask;
+            return Task.FromResult<IEnumerable<InlineQueryResultArticle>>(new List<InlineQueryResultArticle>());
         }
 
         public virtual Task Run(string query, ChosenInlineResult m)
@@ -60,7 +60,6 @@ namespace TelegramBot
                 help.Heading = "";
                 await _tgs.SendMessage(m.from.id, "*Usage:*" + help, ParseMode.Markdown);
             }
-            Command o = null;
             result.WithNotParsed(errs =>
             {
                 OnError(m, result, errs);
@@ -89,10 +88,9 @@ namespace TelegramBot
             }, e => e);
         }
 
-        public override Task Run(string query, TgInlineQuery m)
+        public override Task<IEnumerable<InlineQueryResultArticle>> Run(string query, TgInlineQuery m)
         {
             var result = Parser.Default.ParseArguments<T>(query.Split());
-            Command o = null;
             Task t = new Task(() => { });
             result.WithNotParsed(errs =>
             {
@@ -105,7 +103,7 @@ namespace TelegramBot
                 t.Start();
             });
             t.Wait();
-            return Task.CompletedTask;
+            return Task.FromResult<IEnumerable<InlineQueryResultArticle>>(null);
         }
 
         private void OnError(TgInlineQuery m, ParserResult<T> result, IEnumerable<Error> errs)

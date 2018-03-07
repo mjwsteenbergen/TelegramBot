@@ -67,7 +67,7 @@ namespace TelegramBot
                     {
                         Console.WriteLine(e);
                     }
-                  
+
                 }
             }
             catch (Exception e)
@@ -139,12 +139,19 @@ namespace TelegramBot
                     {
                         args = args.Remove(0, 1);
                     }
-                    await res.Run(args, inlineQuery);
+                    IEnumerable<InlineQueryResultArticle> results = await res.Run(args, inlineQuery);
+                    if (results != null) {
+                        await _tgs.AnswerInlineQuery(inlineQuery.id, results.ToList());
+                    }
                 }
             }
             else
             {
                 if (inlineQuery.query.Replace(" ", "") == "")
+                {
+                    await _tgs.AnswerInlineQuery(inlineQuery.id, GetAllCommands(inlineQuery));
+                }
+                else
                 {
                     await _tgs.AnswerInlineQuery(inlineQuery.id, new List<InlineQueryResultArticle>
                     {
@@ -162,9 +169,21 @@ namespace TelegramBot
             }
         }
 
+        public List<InlineQueryResultArticle> GetAllCommands(TgInlineQuery q)
+        {
+            return actionLib.Where(i => HasPrivilige(q.from.id, i)).Select(i => new InlineQueryResultArticle
+            {
+                id = "1",
+                title = i.CommandName,
+                input_message_content = new InputTextMessageContent
+                {
+                    message_text = i.CommandName
+                }
+            }).ToList();
+        }
+
         public async Task MessageRecieved(ChosenInlineResult inlineResult)
         {
-            Command c;
             Match match = Regex.Match(inlineResult.query, @"^(\w+)");
             if (match.Success)
             {
@@ -175,7 +194,7 @@ namespace TelegramBot
                     await res.Run(inlineResult.query.Replace(commandName + " ", ""), inlineResult);
                 }
             }
-            
+
         }
 
         private Command ConvertToCommand(string commandName)
