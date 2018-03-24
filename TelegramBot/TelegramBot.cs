@@ -137,7 +137,8 @@ namespace TelegramBot
                         args = args.Remove(0, 1);
                     }
                     IEnumerable<InlineQueryResultArticle> results = await res.Run(args, inlineQuery);
-                    if (results != null && results.Any()) {
+                    if (results != null && results.Any())
+                    {
                         await _tgs.AnswerInlineQuery(inlineQuery.id, results.ToList());
                     }
                     return;
@@ -168,15 +169,19 @@ namespace TelegramBot
 
         public List<InlineQueryResultArticle> GetAllCommands(TgInlineQuery q)
         {
-            return actionLib.Where(i => HasPrivilige(q.from.id, i)).Select(i => new InlineQueryResultArticle
-            {
-                id = "1",
-                title = i.CommandName,
-                input_message_content = new InputTextMessageContent
+            return actionLib
+                .Where(i => HasPrivilige(q.from.id, i))
+                .Where(i => i.GetType().GetMethod("Run", new Type[] { typeof(string), typeof(TgInlineQuery) }).DeclaringType == i.GetType())
+                .Select(i => new InlineQueryResultArticle
                 {
-                    message_text = i.CommandName
-                }
-            }).ToList();
+                    id = "1",
+                    title = i.CommandName,
+                    input_message_content = new InputTextMessageContent
+                    {
+                        message_text = i.CommandName
+                    }
+                })
+                .ToList();
         }
 
         public async Task MessageRecieved(ChosenInlineResult inlineResult)

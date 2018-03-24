@@ -41,6 +41,31 @@ namespace TelegramBotTest {
             Assert.AreEqual("item", output);
         }
 
+        [Test]
+        public void TestHelp()
+        {
+            var com = new TelegramInlineMessageTestCommand(new TelegramService(null, null));
+            string output = "Not triggered";
+            com.test = (q, m) =>
+            {
+                output = q;
+                return null;
+            };
+            bot.Add(com);
+            bot.Add(new TelegramMessageTestCommand(new TelegramService(null, null)));
+
+
+            var s = bot.GetAllCommands(new TgInlineQuery
+            {
+                query = "",
+                from = new From
+                {
+                    id = 1
+                }
+            });
+            Assert.AreEqual(1, s.Count);
+        }
+
 
         public async Task TestNotExistantCommand()
         {
@@ -52,8 +77,6 @@ namespace TelegramBotTest {
                 return null;
             };
             bot.Add(com);
-
-
 
             await bot.MessageRecieved(new TgInlineQuery
             {
