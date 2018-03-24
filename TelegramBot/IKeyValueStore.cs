@@ -8,6 +8,7 @@ namespace TelegramBot
         string Get(string key);
         UriHandler GetUriHandler();
         Task Save(UriHandler urihandler);
+        Task RemoveReturnFunction();
     }
 
     public interface IDatabaseValueStore

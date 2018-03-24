@@ -90,15 +90,12 @@ namespace TelegramBot
             if (database != null)
             {
                 store = await database.GetUserData(message.from.id);
-                if (store.Get("ReturnFunction") != null && store.Get("ReturnFunction") != "")
-                {
-                    await store.Set("ReturnFunction", "");
-                }
             }
 
             Match match = Regex.Match(message.text, @"^/(\w+)");
             if (match.Success)
             {
+                await store.RemoveReturnFunction();
                 string commandName = match.Groups[1].Value;
                 var res = ConvertToCommand(commandName);
                 if (res != null && HasPrivilige(message.from.id, res))
@@ -140,32 +137,32 @@ namespace TelegramBot
                         args = args.Remove(0, 1);
                     }
                     IEnumerable<InlineQueryResultArticle> results = await res.Run(args, inlineQuery);
-                    if (results != null) {
+                    if (results != null && results.Any()) {
                         await _tgs.AnswerInlineQuery(inlineQuery.id, results.ToList());
                     }
+                    return;
                 }
+            }
+
+            //If anything goes wrong
+            if (inlineQuery.query.Replace(" ", "") == "")
+            {
+                await _tgs.AnswerInlineQuery(inlineQuery.id, GetAllCommands(inlineQuery));
             }
             else
             {
-                if (inlineQuery.query.Replace(" ", "") == "")
+                await _tgs.AnswerInlineQuery(inlineQuery.id, new List<InlineQueryResultArticle>
                 {
-                    await _tgs.AnswerInlineQuery(inlineQuery.id, GetAllCommands(inlineQuery));
-                }
-                else
-                {
-                    await _tgs.AnswerInlineQuery(inlineQuery.id, new List<InlineQueryResultArticle>
+                    new InlineQueryResultArticle
                     {
-                        new InlineQueryResultArticle
+                        id = "1",
+                        title = "This command is not recognized",
+                        input_message_content = new InputTextMessageContent
                         {
-                            id = "1",
-                            title = "This command is not recognized",
-                            input_message_content = new InputTextMessageContent
-                            {
-                                message_text = "NotFound"
-                            }
+                            message_text = "NotFound"
                         }
+                    }
                     });
-                }
             }
         }
 
@@ -204,7 +201,7 @@ namespace TelegramBot
                 return null;
             }
 
-            return actionLib.Find(i => i.CommandName == commandName);
+            return actionLib.FirstOrDefault(i => i.CommandName == commandName);
         }
 
         public bool HasPrivilige(int fromId, Command c)
