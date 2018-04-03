@@ -36,6 +36,6 @@ namespace TelegramBot
             await _tgs.SendMessage(m.from.id, "You chose " + m.result_id + " from query " + query + " official query: " + m.query);
         }
 
-        public override string CommandName => "Example";
+        public override string CommandName => "example";
     }
 }

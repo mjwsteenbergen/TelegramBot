@@ -7,7 +7,7 @@ using ApiLibs.Telegram;
 
 namespace TelegramBot.Commands
 {
-    class IdCommand : Command
+    public class IdCommand : Command
     {
         public IdCommand(TelegramService tgs) : base(tgs)
         {
@@ -16,7 +16,7 @@ namespace TelegramBot.Commands
 
         public override async Task Run(string query, TgMessage m, IKeyValueStore store)
         {
-            await _tgs.SendMessage(m.chat.id, m.from.id.ToString());
+            await _tgs.SendMessage(m.chat.id, "Your id is: " + m.from.id.ToString());
         }
 
         public override string CommandName => "getId";

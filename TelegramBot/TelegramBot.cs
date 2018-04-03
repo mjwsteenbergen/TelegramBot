@@ -22,7 +22,7 @@ namespace TelegramBot
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + Path.DirectorySeparatorChar +
             "TelegramBot" + Path.DirectorySeparatorChar;
 
-        List<Command> actionLib;
+        public List<Command> actionLib;
         private IDatabaseValueStore database;
 
         public static void Main(string[] args)
@@ -169,12 +169,13 @@ namespace TelegramBot
 
         public List<InlineQueryResultArticle> GetAllCommands(TgInlineQuery q)
         {
+            Random r = new Random();
             return actionLib
                 .Where(i => HasPrivilige(q.from.id, i))
                 .Where(i => i.GetType().GetMethod("Run", new Type[] { typeof(string), typeof(TgInlineQuery) }).DeclaringType == i.GetType())
                 .Select(i => new InlineQueryResultArticle
                 {
-                    id = "1",
+                    id = r.Next(0, 1000).ToString(),
                     title = i.CommandName,
                     input_message_content = new InputTextMessageContent
                     {
@@ -209,7 +210,7 @@ namespace TelegramBot
             return actionLib.FirstOrDefault(i => i.CommandName == commandName);
         }
 
-        public bool HasPrivilige(int fromId, Command c)
+        public static bool HasPrivilige(int fromId, Command c)
         {
             switch (c.privilege)
             {
