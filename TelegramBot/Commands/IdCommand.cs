@@ -20,5 +20,6 @@ namespace TelegramBot.Commands
         }
 
         public override string CommandName => "getId";
+        public override Privilege privilege => Privilege.Public;
     }
 }

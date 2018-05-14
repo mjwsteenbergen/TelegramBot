@@ -16,6 +16,8 @@ namespace TelegramBot.Commands
             ActionList = actionList;
         }
 
+        public override Privilege privilege => Privilege.Public;
+
         public override async Task Run(string query, TgMessage m, IKeyValueStore store)
         {
             string helpText = ActionList
@@ -24,7 +26,7 @@ namespace TelegramBot.Commands
                 .Select(i => "/" + i.CommandName + "\n")
                 .Aggregate((i,j) => i + j);
 
-            await _tgs.SendMessage(m.from.id, helpText);
+            await _tgs.SendMessage(m.from.id, "The following commands are available to you: \n" + helpText);
         }
 
         public override string CommandName => "help";
